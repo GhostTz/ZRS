@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZRS - Dashboard</title>
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <button id="mobile-menu-toggle" class="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+    <div id="overlay" class="overlay"></div>
+
+    <div class="content-wrapper">
+        <nav id="nav-menu" class="nav-menu">
+            <ul class="nav-links">
+                <li><a href="/dashboard/dashboard.html" class="active" title="Dashboard"><i class="fas fa-home"></i> <span class="link-text">Dashboard</span></a></li>
+                <li><a href="/Requests/requests.html" title="Anfragen"><i class="fas fa-paper-plane"></i> <span class="link-text">Anfragen</span></a></li>
+            </ul>
+            <div id="user-profile-nav" class="user-profile">
+                <img src="/assets/pfp_placeholder.png" alt="Profilbild">
+                <div class="profile-info">
+                    <span id="nav-username">Lädt...</span>
+                    <small>Einstellungen</small>
+                </div>
+            </div>
+        </nav>
+
+        <main id="main-content" class="main-content">
+            <h1>Dashboard</h1>
+            <p class="subtitle">Willkommen zurück, <span id="welcome-username">Benutzer</span>!</p>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Schnellzugriff</h3>
+                    <p>Stelle eine neue Medienanfrage oder sieh dir den Status deiner bisherigen Anfragen an.</p>
+                    <a href="/Requests/requests.html" class="button-primary">Neue Anfrage</a>
+                </div>
+                <div class="card">
+                    <h3>Account</h3>
+                    <p>Verwalte deine Kontoeinstellungen und ändere dein Passwort.</p>
+                    <a href="/Settings/settings.html" class="button-primary">Einstellungen</a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+</html>

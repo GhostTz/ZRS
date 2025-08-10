@@ -1,0 +1,246 @@
+/* Import einer modernen, sauberen Schriftart */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+    --background-dark: #10141f;
+    --background-light: #161d2f;
+    --primary: #5a698f;
+    --accent: #fc4747;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c4c7;
+    --success: #28a745;
+    --font-family: 'Poppins', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--background-dark);
+    color: var(--text-primary);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+.content-wrapper {
+    display: flex;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    margin-left: 90px;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* ------ Sidebar / Navigationsmenü (Desktop) ------ */
+.nav-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 90px;
+    background-color: var(--background-light);
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.nav-menu .nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.nav-menu .nav-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem 0;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 1.5rem;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.nav-menu .nav-links a:hover,
+.nav-menu .nav-links a.active {
+    color: var(--text-primary);
+}
+
+.nav-menu .nav-links .link-text {
+    display: none;
+    margin-left: 1.5rem;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+/* ------ User-Profil im Menü (Desktop) ------ */
+.user-profile {
+    margin-top: auto;
+    width: 100%;
+    padding: 1rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-top: 1px solid var(--primary);
+}
+
+.user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--text-primary);
+}
+
+.user-profile .profile-info {
+    display: none;
+    margin-left: 1rem;
+    white-space: nowrap;
+}
+
+.user-profile .profile-info span {
+    display: block;
+    font-weight: 600;
+}
+
+.user-profile .profile-info small {
+    color: var(--primary);
+}
+
+/* ------ Ausgeklapptes Menü (Desktop Hover) ------ */
+.nav-menu.expanded {
+    width: 250px;
+}
+.nav-menu.expanded .nav-links a {
+    justify-content: flex-start;
+    padding-left: 2.2rem;
+}
+.nav-menu.expanded .link-text,
+.nav-menu.expanded .profile-info {
+    display: block;
+    animation: fadeIn 0.4s ease-in-out;
+}
+.main-content.expanded {
+    margin-left: 250px;
+}
+
+/* ------ Hamburger-Menü (Mobile) ------ */
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    background: var(--background-light);
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 1001;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Overlay für Mobile-Menü */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+}
+.overlay.active {
+    display: block;
+}
+
+/* Allgemeine Animationen */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Allgemeine Button-Styles */
+.button-primary {
+    padding: 12px 24px;
+    border: none;
+    background-color: var(--accent);
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.button-primary:hover {
+    transform: scale(1.05);
+    background-color: #e63e3e;
+}
+
+/* ================== RESPONSIVE DESIGN FÜR MOBILE =================== */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+        padding-top: 6rem;
+    }
+
+    .main-content.expanded {
+        margin-left: 0;
+    }
+
+    .nav-menu {
+        transform: translateX(-100%);
+        width: 280px;
+        padding: 0; /* Padding zurücksetzen, da wir es für die Links brauchen */
+    }
+
+    .nav-menu.active {
+        transform: translateX(0);
+        box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+    }
+    
+    /* KORREKTUR 1: Padding oben für die Link-Liste, um Platz für den Button zu schaffen */
+    .nav-menu .nav-links {
+        padding-top: 6rem;
+    }
+    
+    .nav-menu .nav-links a {
+        justify-content: flex-start;
+        padding-left: 2rem;
+    }
+
+    /* KORREKTUR 2: Den Text im Menü immer anzeigen, wenn es auf Mobile geöffnet ist */
+    .nav-menu.active .link-text,
+    .nav-menu.active .profile-info {
+        display: block;
+    }
+
+    .user-profile {
+        justify-content: flex-start;
+        padding: 1.5rem 2rem; /* Mehr Padding für bessere Klickbarkeit */
+    }
+
+    .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

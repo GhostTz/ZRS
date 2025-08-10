@@ -1,0 +1,48 @@
+.subtitle {
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-top: -10px;
+    font-weight: 300;
+}
+
+.dashboard-grid {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.card {
+    background-color: var(--background-light);
+    padding: 2rem;
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: var(--accent);
+}
+
+.card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.card .button-primary {
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        gap: 1rem;
+    }
+    .card {
+        padding: 1.5rem;
+    }
+}

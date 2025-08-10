@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZRS - Einstellungen</title>
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <button id="mobile-menu-toggle" class="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+    <div id="overlay" class="overlay"></div>
+
+    <div class="content-wrapper">
+        <nav id="nav-menu" class="nav-menu">
+            <ul class="nav-links">
+                <li><a href="/dashboard/dashboard.html" title="Dashboard"><i class="fas fa-home"></i> <span class="link-text">Dashboard</span></a></li>
+                <li><a href="/Requests/requests.html" title="Anfragen"><i class="fas fa-paper-plane"></i> <span class="link-text">Anfragen</span></a></li>
+            </ul>
+            <div id="user-profile-nav" class="user-profile">
+                <img src="/assets/pfp_placeholder.png" alt="Profilbild">
+                <div class="profile-info">
+                    <span id="nav-username">Lädt...</span>
+                    <small>Einstellungen</small>
+                </div>
+            </div>
+        </nav>
+        
+        <main id="main-content" class="main-content">
+            <h1>Einstellungen</h1>
+            <div class="settings-grid">
+                <section id="my-requests-section" class="card">
+                    <h2>Meine Anfragen</h2>
+                    <div id="requests-list">
+                        <div class="loader"></div>
+                    </div>
+                </section>
+
+                <section id="password-change-section" class="card">
+                    <h2>Passwort ändern</h2>
+                    <form id="password-change-form">
+                        <div class="form-group">
+                            <label for="current-password">Aktuelles Passwort</label>
+                            <input type="password" id="current-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">Neues Passwort</label>
+                            <input type="password" id="new-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Neues Passwort bestätigen</label>
+                            <input type="password" id="confirm-password" required>
+                        </div>
+                        <button type="submit" id="change-password-button" class="button-primary">Speichern</button>
+                        <p id="password-message" class="message"></p>
+                    </form>
+                </section>
+                 <section id="logout-section" class="card">
+                    <h2>Abmelden</h2>
+                    <p>Hiermit meldest du dich vom ZRS ab.</p>
+                     <button id="logout-button" class="button-danger">Abmelden</button>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="settings.js"></script>
+</body>
+</html>
