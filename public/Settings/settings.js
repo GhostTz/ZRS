@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('zrs_accessToken')) {
-        window.location.href = '/';
+        window.location.href = '/zrs/'; // Korrigierter Pfad
         return;
     }
 
@@ -42,18 +42,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         userProfileNav.addEventListener('click', () => {
-            window.location.href = '/Settings/settings.html';
+            window.location.href = '/zrs/Settings/settings.html'; // Korrigierter Pfad
         });
     }
     
     initializeNavigation();
 
-    // Logout Button Logik
     const logoutButton = document.getElementById('logout-button');
     logoutButton.addEventListener('click', () => {
         localStorage.removeItem('zrs_accessToken');
         localStorage.removeItem('zrs_user');
-        window.location.href = '/';
+        window.location.href = '/zrs/'; // Korrigierter Pfad
     });
 
     const requestsList = document.getElementById('requests-list');
@@ -69,17 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'rejected': statusIcon = '❌'; statusText = 'Abgelehnt'; break;
             default: statusIcon = '🕒'; statusText = 'In Bearbeitung'; break;
         }
-
         element.innerHTML = `
             <img class="request-item-poster" src="${posterUrl}" alt="Poster">
-            <div class="request-item-details">
-                <h3>${request.mediaTitle}</h3>
-                <p>Angefragt am: ${requestDate}</p>
-            </div>
-            <div class="request-item-status status-${request.status}">
-                ${statusIcon}
-                <span>${statusText}</span>
-            </div>
+            <div class="request-item-details"><h3>${request.mediaTitle}</h3><p>Angefragt am: ${requestDate}</p></div>
+            <div class="request-item-status status-${request.status}">${statusIcon}<span>${statusText}</span></div>
         `;
         return element;
     };
@@ -92,7 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try {
-            const response = await fetch(`/api/my-requests?userId=${user.Id}`);
+            // ================== KORREKTUR HIER ==================
+            const response = await fetch(`/zrs/api/my-requests?userId=${user.Id}`);
+            // ======================================================
             if (!response.ok) throw new Error('Fehler beim Laden der Anfragen.');
             const requests = await response.json();
             requestsList.innerHTML = '';
@@ -118,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     passwordForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        
         const currentPassword = currentPasswordInput.value;
         const newPassword = newPasswordInput.value;
         const confirmPassword = confirmPasswordInput.value;
@@ -128,13 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (newPassword.length < 8) {
             passwordMessage.textContent = 'Das neue Passwort muss mindestens 8 Zeichen lang sein.';
-            passwordMessage.classList.add('error');
-            return;
+            passwordMessage.classList.add('error'); return;
         }
         if (newPassword !== confirmPassword) {
             passwordMessage.textContent = 'Die neuen Passwörter stimmen nicht überein.';
-            passwordMessage.classList.add('error');
-            return;
+            passwordMessage.classList.add('error'); return;
         }
 
         changePasswordButton.disabled = true;
@@ -142,7 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const accessToken = localStorage.getItem('zrs_accessToken');
-            const response = await fetch('/api/user/change-password', {
+            // ================== KORREKTUR HIER ==================
+            const response = await fetch('/zrs/api/user/change-password', {
+            // ======================================================
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -159,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
             passwordMessage.textContent = data.message;
             passwordMessage.classList.add('success');
             passwordForm.reset();
-
         } catch (error) {
             passwordMessage.textContent = error.message;
             passwordMessage.classList.add('error');

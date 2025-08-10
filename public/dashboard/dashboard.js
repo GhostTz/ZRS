@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('zrs_accessToken')) {
-        window.location.href = '/';
+        window.location.href = '/zrs/'; // Korrigierter Pfad zur index.html
         return;
     }
 
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         userProfileNav.addEventListener('click', () => {
-            window.location.href = '/Settings/settings.html';
+            window.location.href = '/zrs/Settings/settings.html'; // Korrigierter Pfad
         });
     }
 

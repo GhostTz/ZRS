@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('zrs_accessToken')) {
-        window.location.href = '/';
+        window.location.href = '/zrs/'; // Korrigierter Pfad
         return;
     }
 
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         userProfileNav.addEventListener('click', () => {
-            window.location.href = '/Settings/settings.html';
+            window.location.href = '/zrs/Settings/settings.html'; // Korrigierter Pfad
         });
     }
     
@@ -59,28 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsGrid.innerHTML = '<p>Keine Ergebnisse gefunden.</p>';
             return;
         }
-
         items.forEach(item => {
             if (item.media_type !== 'movie' && item.media_type !== 'tv') return;
             const title = item.title || item.name;
             const year = item.release_date?.substring(0, 4) || item.first_air_date?.substring(0, 4) || '';
             const posterPath = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : 'https://via.placeholder.com/342x513.png?text=Kein+Bild';
-            
             const card = document.createElement('div');
             card.className = 'media-card';
             card.innerHTML = `
-                <div class="poster-wrapper">
-                    <img src="${posterPath}" alt="${title}" loading="lazy">
-                </div>
-                <div class="media-card-info">
-                    <h3>${title}</h3>
-                    <div class="card-footer">
-                        <span>${year}</span>
-                        <button class="request-btn" data-id="${item.id}" data-type="${item.media_type}">
-                            <i class="fas fa-plus"></i> Anfragen
-                        </button>
-                    </div>
-                </div>
+                <div class="poster-wrapper"><img src="${posterPath}" alt="${title}" loading="lazy"></div>
+                <div class="media-card-info"><h3>${title}</h3><div class="card-footer"><span>${year}</span><button class="request-btn" data-id="${item.id}" data-type="${item.media_type}"><i class="fas fa-plus"></i> Anfragen</button></div></div>
             `;
             resultsGrid.appendChild(card);
         });
@@ -98,17 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = JSON.parse(localStorage.getItem('zrs_user'));
 
         try {
-            const response = await fetch('/api/request', {
+            // ================== KORREKTUR HIER ==================
+            const response = await fetch('/zrs/api/request', {
+            // ======================================================
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mediaId, mediaType, user })
             });
-            
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Ein unbekannter Fehler ist aufgetreten.');
-            }
-
+            if (!response.ok) throw new Error(data.message || 'Ein unbekannter Fehler ist aufgetreten.');
             button.innerHTML = '<i class="fas fa-check"></i> Angefragt!';
             button.classList.add('success');
         } catch (error) {
@@ -125,7 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsTitle.textContent = `Suchergebnisse für "${query}"`;
         resultsGrid.innerHTML = '<div class="loader"></div>';
         try {
-            const response = await fetch(`/api/tmdb/search?q=${encodeURIComponent(query)}`);
+            // ================== KORREKTUR HIER ==================
+            const response = await fetch(`/zrs/api/tmdb/search?q=${encodeURIComponent(query)}`);
+            // ======================================================
             const data = await response.json();
             displayMedia(data.results);
         } catch (error) {
@@ -137,20 +125,18 @@ document.addEventListener('DOMContentLoaded', () => {
     searchForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const query = searchInput.value.trim();
-        if (query) {
-            performSearch(query);
-        }
+        if (query) performSearch(query);
     });
 
     const loadPopular = async () => {
         resultsTitle.textContent = 'Aktuell Beliebt';
         resultsGrid.innerHTML = '<div class="loader"></div>';
         try {
-            const response = await fetch('/api/tmdb/popular');
+            // ================== KORREKTUR HIER ==================
+            const response = await fetch('/zrs/api/tmdb/popular');
+            // ======================================================
             const data = await response.json();
-            if (!response.ok) {
-                 throw new Error(data.message || 'Serverfehler');
-            }
+            if (!response.ok) throw new Error(data.message || 'Serverfehler');
             displayMedia(data.results);
         } catch (error) {
             console.error('Fehler beim Laden der beliebten Titel:', error);
