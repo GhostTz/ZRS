@@ -23,7 +23,7 @@ h1 {
     font-weight: 400;
 }
 
-/* --- NEUE STYLES FÜR ABO-STATUS --- */
+/* --- ABO-STATUS --- */
 .subscription-info {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -42,7 +42,7 @@ h1 {
 }
 
 .progress-bar-container {
-    grid-column: 1 / -1; /* Nimmt die volle Breite ein */
+    grid-column: 1 / -1;
     margin-top: 1rem;
 }
 
@@ -56,7 +56,7 @@ h1 {
 
 .progress-bar-inner {
     height: 100%;
-    width: 0%; /* Wird von JS gesetzt */
+    width: 0%;
     background-color: var(--success);
     border-radius: 5px;
     transition: width 0.5s ease-in-out;
@@ -68,8 +68,34 @@ h1 {
     color: var(--text-secondary);
     text-align: right;
 }
-/* ----------------------------------- */
 
+/* --- BENACHRICHTIGUNGEN --- */
+#notification-status p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+#toggle-push-button {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+#toggle-push-button.subscribed {
+    background-color: var(--primary);
+}
+
+#toggle-push-button.subscribed:hover {
+    background-color: var(--accent);
+}
+
+#notification-feedback {
+    display: block;
+    margin-top: 1rem;
+    min-height: 20px;
+    text-align: center;
+}
+
+/* --- PASSWORT & LOGOUT --- */
 .form-group {
     margin-bottom: 1.5rem;
 }

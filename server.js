@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { Client, GatewayIntentBits, EmbedBuilder, Collection } = require('discord.js');
 const { createRequestEmbed } = require('./dc/handler/requestHandler');
+const webpush = require('web-push');
 
 // --- Konfiguration ---
 const PORT = process.env.SERVER_PORT || 3000;
@@ -13,16 +14,23 @@ const JELLYFIN_API_KEY = process.env.JELLYFIN_API_KEY;
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const VAPID_MAILTO = process.env.VAPID_MAILTO;
 
-if (!JELLYFIN_URL || !JELLYFIN_API_KEY || !TMDB_API_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
+if (!JELLYFIN_URL || !JELLYFIN_API_KEY || !TMDB_API_KEY || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID || !VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY || !VAPID_MAILTO) {
     console.error('❌ FEHLER: Eine oder mehrere Konfigurationsvariablen in der .env-Datei fehlen.');
     process.exit(1);
 }
+
+// --- Web Push Konfiguration ---
+webpush.setVapidDetails(VAPID_MAILTO, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
 // --- "DATENBANK"-HELFER ---
 const dbDir = path.join(__dirname, 'db');
 const requestsFile = path.join(dbDir, 'requests.json');
 const subsFile = path.join(dbDir, 'subs.json');
+const pushSubsFile = path.join(dbDir, 'push_subscriptions.json');
 
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 
@@ -55,6 +63,25 @@ const db = {
             subs.unshift(subData);
         }
         db.writeSubscriptions(subs);
+    },
+    readPushSubscriptions: () => {
+        if (!fs.existsSync(pushSubsFile) || fs.readFileSync(pushSubsFile).length === 0) return [];
+        try { return JSON.parse(fs.readFileSync(pushSubsFile)); }
+        catch (e) { console.error("Fehler beim Parsen der push_subscriptions.json: ", e); return []; }
+    },
+    writePushSubscriptions: (subs) => fs.writeFileSync(pushSubsFile, JSON.stringify(subs, null, 2)),
+    savePushSubscription: (jellyfinUserId, subscriptionObject) => {
+        const subs = db.readPushSubscriptions();
+        const existingSub = subs.find(s => s.subscriptionObject.endpoint === subscriptionObject.endpoint);
+        if (!existingSub) {
+            subs.push({ jellyfinUserId, subscriptionObject });
+            db.writePushSubscriptions(subs);
+        }
+    },
+    deletePushSubscription: (endpoint) => {
+        let subs = db.readPushSubscriptions();
+        subs = subs.filter(s => s.subscriptionObject.endpoint !== endpoint);
+        db.writePushSubscriptions(subs);
     }
 };
 
@@ -76,24 +103,43 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- API ROUTE ZUR SITZUNGSVALIDIERUNG ---
 app.post('/api/auth/validate', async (req, res) => {
     const { accessToken } = req.body;
-    if (!accessToken) {
-        return res.status(401).json({ valid: false, message: 'Kein Token bereitgestellt.' });
-    }
-
+    if (!accessToken) return res.status(401).json({ valid: false, message: 'Kein Token bereitgestellt.' });
     try {
-        const response = await fetch(`${JELLYFIN_URL}/Users/Me`, {
-            headers: { 'Authorization': `MediaBrowser Token="${accessToken}"` }
-        });
-
-        if (response.ok) {
-            res.status(200).json({ valid: true });
-        } else {
-            res.status(401).json({ valid: false, message: 'Sitzung ungültig.' });
-        }
+        const response = await fetch(`${JELLYFIN_URL}/Users/Me`, { headers: { 'Authorization': `MediaBrowser Token="${accessToken}"` } });
+        if (response.ok) res.status(200).json({ valid: true });
+        else res.status(401).json({ valid: false, message: 'Sitzung ungültig.' });
     } catch (error) {
         console.error('Fehler bei der Sitzungsvalidierung:', error);
         res.status(500).json({ valid: false, message: 'Interner Serverfehler.' });
     }
+});
+
+
+// --- PUSH API ROUTEN ---
+app.get('/api/push/vapidPublicKey', (req, res) => {
+    res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
+app.post('/api/push/subscribe', async (req, res) => {
+    const subscription = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({});
+    const accessToken = authHeader.split(' ')[1];
+    try {
+        const meResponse = await fetch(`${JELLYFIN_URL}/Users/Me`, { headers: { 'Authorization': `MediaBrowser Token="${accessToken}"` } });
+        if (!meResponse.ok) throw new Error();
+        const user = await meResponse.json();
+        db.savePushSubscription(user.Id, subscription);
+        res.status(201).json({});
+    } catch {
+        res.status(401).json({});
+    }
+});
+
+app.post('/api/push/unsubscribe', (req, res) => {
+    const { endpoint } = req.body;
+    db.deletePushSubscription(endpoint);
+    res.status(200).json({});
 });
 
 
@@ -294,6 +340,7 @@ client.on('interactionCreate', async interaction => {
         }
         return;
     }
+
     if (interaction.isModalSubmit()) {
         const [commandName] = interaction.customId.split(':');
         const modalCommand = client.commands.get(commandName);
@@ -302,20 +349,50 @@ client.on('interactionCreate', async interaction => {
         }
         return;
     }
+
     if (interaction.isButton()) {
         const [commandName, action, data] = interaction.customId.split(':');
+        
         if (commandName === 'request') {
             await interaction.deferUpdate();
             const requestId = data;
-            const originalMessage = interaction.message;
-            const originalEmbed = originalMessage.embeds[0];
-            const newStatus = action === 'approve' ? 'accepted' : 'rejected';
-            const updatedRequest = db.updateRequestStatus(requestId, newStatus, interaction.user.username);
+            const updatedRequest = db.updateRequestStatus(requestId, action === 'approve' ? 'accepted' : 'rejected', interaction.user.username);
+            
             if (updatedRequest) {
+                const originalMessage = interaction.message;
+                const originalEmbed = originalMessage.embeds[0];
+                const newStatus = updatedRequest.status;
                 const newEmbed = EmbedBuilder.from(originalEmbed)
                     .setColor(newStatus === 'accepted' ? '#28a745' : '#dc3545')
                     .addFields({ name: 'Status', value: `${newStatus === 'accepted' ? '✅ Hochgeladen' : '❌ Abgelehnt'} durch ${interaction.user.username}`, inline: false });
                 await interaction.editReply({ embeds: [newEmbed], components: [] });
+
+                // BENACHRICHTIGUNG SENDEN
+                const requesterId = updatedRequest.requesterJellyfinId;
+                const pushSubscriptions = db.readPushSubscriptions().filter(s => s.jellyfinUserId === requesterId);
+                
+                if (pushSubscriptions.length > 0) {
+                    console.log(`Sende ${pushSubscriptions.length} Push-Benachrichtigung(en) für Request ${requestId}...`);
+                    const payload = JSON.stringify({
+                        title: 'ZRS Anfrage-Update',
+                        body: newStatus === 'accepted' ? `✅ "${updatedRequest.mediaTitle}" ist jetzt verfügbar!` : `❌ Deine Anfrage für "${updatedRequest.mediaTitle}" wurde abgelehnt.`
+                    });
+
+                    const sendPromises = pushSubscriptions.map(sub => 
+                        webpush.sendNotification(sub.subscriptionObject, payload)
+                            .catch(error => {
+                                if (error.statusCode === 410 || error.statusCode === 404) {
+                                    console.log('Veraltetes Push-Abo entfernt:', sub.subscriptionObject.endpoint);
+                                    db.deletePushSubscription(sub.subscriptionObject.endpoint);
+                                } else {
+                                    console.error('Fehler beim Senden der Push-Benachrichtigung:', error.body);
+                                }
+                            })
+                    );
+                    
+                    await Promise.allSettled(sendPromises);
+                    console.log('Versand der Push-Benachrichtigungen abgeschlossen.');
+                }
             } else {
                 await interaction.editReply({ content: 'Fehler: Dieser Request wurde nicht in der Datenbank gefunden.', embeds: [], components: [] });
             }

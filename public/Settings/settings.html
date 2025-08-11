@@ -30,14 +30,21 @@
         <main id="main-content" class="main-content">
             <h1>Einstellungen</h1>
             <div class="settings-grid">
-                <!-- ================== NEUER ABO-STATUS BEREICH ================== -->
                 <section id="subscription-section" class="card">
                     <h2>Dein Abonnement</h2>
                     <div id="subscription-details">
                         <div class="loader"></div>
                     </div>
                 </section>
-                <!-- ============================================================= -->
+                
+                <section id="notifications-section" class="card">
+                    <h2>Benachrichtigungen</h2>
+                    <div id="notification-status">
+                        <p>Hier kannst du Push-Benachrichtigungen für dieses Gerät aktivieren, um über den Status deiner Anfragen informiert zu werden.</p>
+                        <button id="toggle-push-button" class="button-primary">Lade Status...</button>
+                        <small id="notification-feedback" class="message"></small>
+                    </div>
+                </section>
 
                 <section id="password-change-section" class="card">
                     <h2>Passwort ändern</h2>

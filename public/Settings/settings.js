@@ -66,7 +66,6 @@ function initializePage() {
     });
 
     const subscriptionDetails = document.getElementById('subscription-details');
-
     const loadSubscriptionInfo = async () => {
         const user = JSON.parse(localStorage.getItem('zrs_user'));
         if (!user) {
@@ -99,33 +98,26 @@ function initializePage() {
             subscriptionDetails.innerHTML = `<p>Fehler beim Laden der Abo-Daten.</p>`;
         }
     };
-    
     loadSubscriptionInfo();
 
     const passwordForm = document.getElementById('password-change-form');
-    const currentPasswordInput = document.getElementById('current-password');
-    const newPasswordInput = document.getElementById('new-password');
-    const confirmPasswordInput = document.getElementById('confirm-password');
-    const passwordMessage = document.getElementById('password-message');
-    const changePasswordButton = document.getElementById('change-password-button');
-
     passwordForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const currentPassword = currentPasswordInput.value;
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const passwordMessage = document.getElementById('password-message');
         passwordMessage.textContent = '';
         passwordMessage.className = 'message';
         if (newPassword.length < 8) {
             passwordMessage.textContent = 'Das neue Passwort muss mindestens 8 Zeichen lang sein.';
-            passwordMessage.classList.add('error');
-            return;
+            passwordMessage.classList.add('error'); return;
         }
         if (newPassword !== confirmPassword) {
             passwordMessage.textContent = 'Die neuen Passwörter stimmen nicht überein.';
-            passwordMessage.classList.add('error');
-            return;
+            passwordMessage.classList.add('error'); return;
         }
+        const changePasswordButton = document.getElementById('change-password-button');
         changePasswordButton.disabled = true;
         changePasswordButton.textContent = 'Ändere...';
         try {
@@ -136,9 +128,7 @@ function initializePage() {
                 body: JSON.stringify({ currentPassword, newPassword })
             });
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Ein unbekannter Fehler ist aufgetreten.');
-            }
+            if (!response.ok) throw new Error(data.message || 'Ein unbekannter Fehler ist aufgetreten.');
             passwordMessage.textContent = data.message;
             passwordMessage.classList.add('success');
             passwordForm.reset();
@@ -150,4 +140,120 @@ function initializePage() {
             changePasswordButton.textContent = 'Speichern';
         }
     });
+
+    // --- LOGIK FÜR PUSH-BENACHRICHTIGUNGEN (MIT DER KORREKTUR) ---
+    const pushButton = document.getElementById('toggle-push-button');
+    const feedbackText = document.getElementById('notification-feedback');
+    let isSubscribed = false;
+    let swRegistration = null;
+
+    async function getVapidPublicKey() {
+        const response = await fetch('/zrs/api/push/vapidPublicKey');
+        return response.json();
+    }
+
+    async function registerServiceWorker() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.warn('Push-Benachrichtigungen werden in diesem Browser nicht unterstützt.');
+            pushButton.textContent = 'Push nicht unterstützt';
+            pushButton.disabled = true;
+            return;
+        }
+        try {
+            // ======================== KORREKTUR HIER ========================
+            // Wir definieren den Geltungsbereich explizit auf den Root-Pfad unserer App.
+            swRegistration = await navigator.serviceWorker.register('/zrs/push-client.js', { scope: '/zrs/' });
+            // ================================================================
+            console.log('Service Worker erfolgreich registriert mit Scope:', swRegistration.scope);
+            await updateUI();
+        } catch (error) {
+            console.error('Service Worker Registrierung fehlgeschlagen:', error);
+            pushButton.textContent = 'Push nicht unterstützt';
+            pushButton.disabled = true;
+        }
+    }
+
+    async function updateUI() {
+        if (!swRegistration) return;
+        const subscription = await swRegistration.pushManager.getSubscription();
+        isSubscribed = (subscription !== null);
+        if (isSubscribed) {
+            pushButton.textContent = 'Benachrichtigungen auf diesem Gerät deaktivieren';
+            pushButton.classList.add('subscribed');
+        } else {
+            pushButton.textContent = 'Benachrichtigungen auf diesem Gerät aktivieren';
+            pushButton.classList.remove('subscribed');
+        }
+        pushButton.disabled = false;
+    }
+
+    async function handleSubscribeClick() {
+        pushButton.disabled = true;
+        if (isSubscribed) {
+            await unsubscribeUser();
+        } else {
+            await subscribeUser();
+        }
+    }
+
+    async function subscribeUser() {
+        try {
+            const { publicKey } = await getVapidPublicKey();
+            const applicationServerKey = urlB64ToUint8Array(publicKey);
+            const subscription = await swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey
+            });
+            await saveSubscriptionToServer(subscription);
+            feedbackText.textContent = 'Erfolgreich abonniert!';
+            feedbackText.className = 'message success';
+        } catch (err) {
+            console.error('Abonnement fehlgeschlagen: ', err);
+            feedbackText.textContent = 'Abonnement fehlgeschlagen. Bitte Berechtigung erteilen.';
+            feedbackText.className = 'message error';
+        }
+        await updateUI();
+    }
+
+    async function unsubscribeUser() {
+        const subscription = await swRegistration.pushManager.getSubscription();
+        if (subscription) {
+            await deleteSubscriptionFromServer(subscription);
+            await subscription.unsubscribe();
+            feedbackText.textContent = 'Abonnement beendet.';
+            feedbackText.className = 'message';
+        }
+        await updateUI();
+    }
+
+    pushButton.addEventListener('click', handleSubscribeClick);
+
+    function urlB64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
+        return outputArray;
+    }
+
+    async function saveSubscriptionToServer(subscription) {
+        const accessToken = localStorage.getItem('zrs_accessToken');
+        await fetch('/zrs/api/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+            body: JSON.stringify(subscription)
+        });
+    }
+
+    async function deleteSubscriptionFromServer(subscription) {
+        const accessToken = localStorage.getItem('zrs_accessToken');
+        await fetch('/zrs/api/push/unsubscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+            body: JSON.stringify({ endpoint: subscription.endpoint })
+        });
+    }
+
+    registerServiceWorker();
 }
