@@ -73,6 +73,30 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
+// --- API ROUTE ZUR SITZUNGSVALIDIERUNG ---
+app.post('/api/auth/validate', async (req, res) => {
+    const { accessToken } = req.body;
+    if (!accessToken) {
+        return res.status(401).json({ valid: false, message: 'Kein Token bereitgestellt.' });
+    }
+
+    try {
+        const response = await fetch(`${JELLYFIN_URL}/Users/Me`, {
+            headers: { 'Authorization': `MediaBrowser Token="${accessToken}"` }
+        });
+
+        if (response.ok) {
+            res.status(200).json({ valid: true });
+        } else {
+            res.status(401).json({ valid: false, message: 'Sitzung ungültig.' });
+        }
+    } catch (error) {
+        console.error('Fehler bei der Sitzungsvalidierung:', error);
+        res.status(500).json({ valid: false, message: 'Interner Serverfehler.' });
+    }
+});
+
+
 // --- API Route für den Jellyfin Login ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;

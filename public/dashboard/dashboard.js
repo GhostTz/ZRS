@@ -1,9 +1,35 @@
-document.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('zrs_accessToken')) {
-        window.location.href = '/zrs/'; // Korrigierter Pfad zur index.html
+// Auth Guard - Führt die Sitzungsprüfung aus, bevor irgendetwas anderes geladen wird.
+(async function checkAuth() {
+    const accessToken = localStorage.getItem('zrs_accessToken');
+    if (!accessToken) {
+        window.location.href = '/zrs/';
         return;
     }
 
+    try {
+        const response = await fetch('/zrs/api/auth/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken })
+        });
+
+        if (!response.ok) {
+            throw new Error('Sitzung ungültig.');
+        }
+
+        console.log('Sitzung ist gültig.');
+        // Nur wenn die Sitzung gültig ist, den Rest der Seite initialisieren.
+        initializePage();
+
+    } catch (error) {
+        console.error('Authentifizierungsfehler:', error.message);
+        localStorage.removeItem('zrs_accessToken');
+        localStorage.removeItem('zrs_user');
+        window.location.href = '/zrs/';
+    }
+})();
+
+function initializePage() {
     console.log('Benutzer ist eingeloggt. Dashboard wird geladen.');
 
     function initializeNavigation() {
@@ -48,9 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         userProfileNav.addEventListener('click', () => {
-            window.location.href = '/zrs/Settings/settings.html'; // Korrigierter Pfad
+            window.location.href = '/zrs/Settings/settings.html';
         });
     }
 
     initializeNavigation();
-});
+}

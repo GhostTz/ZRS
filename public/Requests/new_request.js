@@ -1,9 +1,24 @@
-document.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('zrs_accessToken')) {
-        window.location.href = '/zrs/'; // Korrigierter Pfad
-        return;
+// Auth Guard
+(async function checkAuth() {
+    const accessToken = localStorage.getItem('zrs_accessToken');
+    if (!accessToken) { window.location.href = '/zrs/'; return; }
+    try {
+        const response = await fetch('/zrs/api/auth/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken })
+        });
+        if (!response.ok) throw new Error('Sitzung ungültig.');
+        initializePage();
+    } catch (error) {
+        console.error('Authentifizierungsfehler:', error.message);
+        localStorage.removeItem('zrs_accessToken');
+        localStorage.removeItem('zrs_user');
+        window.location.href = '/zrs/';
     }
+})();
 
+function initializePage() {
     function initializeNavigation() {
         const navMenu = document.getElementById('nav-menu');
         const mainContent = document.getElementById('main-content');
@@ -42,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         userProfileNav.addEventListener('click', () => {
-            window.location.href = '/zrs/Settings/settings.html'; // Korrigierter Pfad
+            window.location.href = '/zrs/Settings/settings.html';
         });
     }
     
@@ -77,18 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleRequest = async (event) => {
         const button = event.target.closest('.request-btn');
         if (!button) return;
-
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
         const mediaId = button.dataset.id;
         const mediaType = button.dataset.type;
         const user = JSON.parse(localStorage.getItem('zrs_user'));
-
         try {
-            // ================== KORREKTUR HIER ==================
             const response = await fetch('/zrs/api/request', {
-            // ======================================================
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mediaId, mediaType, user })
@@ -111,9 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsTitle.textContent = `Suchergebnisse für "${query}"`;
         resultsGrid.innerHTML = '<div class="loader"></div>';
         try {
-            // ================== KORREKTUR HIER ==================
             const response = await fetch(`/zrs/api/tmdb/search?q=${encodeURIComponent(query)}`);
-            // ======================================================
             const data = await response.json();
             displayMedia(data.results);
         } catch (error) {
@@ -132,9 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsTitle.textContent = 'Aktuell Beliebt';
         resultsGrid.innerHTML = '<div class="loader"></div>';
         try {
-            // ================== KORREKTUR HIER ==================
             const response = await fetch('/zrs/api/tmdb/popular');
-            // ======================================================
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Serverfehler');
             displayMedia(data.results);
@@ -143,6 +149,5 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsGrid.innerHTML = '<p>Fehler beim Laden der beliebten Titel. Bitte versuchen Sie es erneut.</p>';
         }
     };
-
     loadPopular();
-});
+}
