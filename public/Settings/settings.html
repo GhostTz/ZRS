@@ -14,7 +14,6 @@
 
     <div class="content-wrapper">
         <nav id="nav-menu" class="nav-menu">
-            <!-- HIER IST DIE ÄNDERUNG: PROFIL IST JETZT OBEN -->
             <div id="user-profile-nav" class="user-profile">
                 <img src="/zrs/assets/pfp_placeholder.png" alt="Profilbild">
                 <div class="profile-info">
@@ -22,7 +21,6 @@
                     <small>Einstellungen</small>
                 </div>
             </div>
-            
             <ul class="nav-links">
                 <li><a href="/zrs/dashboard/dashboard.html" title="Dashboard"><i class="fas fa-home"></i> <span class="link-text">Dashboard</span></a></li>
                 <li><a href="/zrs/Requests/requests.html" title="Anfragen"><i class="fas fa-paper-plane"></i> <span class="link-text">Anfragen</span></a></li>
@@ -32,12 +30,14 @@
         <main id="main-content" class="main-content">
             <h1>Einstellungen</h1>
             <div class="settings-grid">
-                <section id="my-requests-section" class="card">
-                    <h2>Meine Anfragen</h2>
-                    <div id="requests-list">
+                <!-- ================== NEUER ABO-STATUS BEREICH ================== -->
+                <section id="subscription-section" class="card">
+                    <h2>Dein Abonnement</h2>
+                    <div id="subscription-details">
                         <div class="loader"></div>
                     </div>
                 </section>
+                <!-- ============================================================= -->
 
                 <section id="password-change-section" class="card">
                     <h2>Passwort ändern</h2>

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZRS - Anfragen</title>
+    <title>ZRS - Meine Anfragen</title>
     <link rel="stylesheet" href="/zrs/css/global.css">
-    <link rel="stylesheet" href="/zrs/Requests/requests.css">
+    <link rel="stylesheet" href="/zrs/Requests/my_requests.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -28,23 +28,15 @@
         </nav>
 
         <main id="main-content" class="main-content">
-            <h1>Anfragen</h1>
-            <p class="subtitle">Was möchtest du tun?</p>
-            
-            <div class="choice-container">
-                <a href="/zrs/Requests/new_request.html" class="choice-card">
-                    <i class="fas fa-plus-circle"></i>
-                    <h2>Neue Anfrage stellen</h2>
-                    <p>Suche nach neuen Filmen und Serien und füge sie deiner Wunschliste hinzu.</p>
-                </a>
-                <a href="/zrs/Requests/my_requests.html" class="choice-card">
-                    <i class="fas fa-history"></i>
-                    <h2>Meine Anfragen ansehen</h2>
-                    <p>Überprüfe den Status deiner bereits gestellten Anfragen.</p>
-                </a>
-            </div>
+            <h1>Meine Anfragen</h1>
+            <p class="subtitle">Hier siehst du den Status all deiner bisherigen Anfragen.</p>
+            <section id="my-requests-section" class="card">
+                <div id="requests-list">
+                    <div class="loader"></div>
+                </div>
+            </section>
         </main>
     </div>
-    <script src="/zrs/Requests/requests.js"></script>
+    <script src="/zrs/Requests/my_requests.js"></script>
 </body>
 </html>

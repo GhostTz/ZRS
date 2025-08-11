@@ -3,7 +3,7 @@ const express = require('express');
 const fetch = require('node-fetch');
 const path = require('path');
 const fs = require('fs');
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, Collection } = require('discord.js');
 const { createRequestEmbed } = require('./dc/handler/requestHandler');
 
 // --- Konfiguration ---
@@ -22,45 +22,52 @@ if (!JELLYFIN_URL || !JELLYFIN_API_KEY || !TMDB_API_KEY || !DISCORD_BOT_TOKEN ||
 // --- "DATENBANK"-HELFER ---
 const dbDir = path.join(__dirname, 'db');
 const requestsFile = path.join(dbDir, 'requests.json');
+const subsFile = path.join(dbDir, 'subs.json');
 
-if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir);
-}
+if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 
 const db = {
     readRequests: () => {
         if (!fs.existsSync(requestsFile) || fs.readFileSync(requestsFile).length === 0) return [];
-        try {
-            return JSON.parse(fs.readFileSync(requestsFile));
-        } catch (e) {
-            console.error("Fehler beim Parsen der requests.json: ", e);
-            return [];
-        }
+        try { return JSON.parse(fs.readFileSync(requestsFile)); }
+        catch (e) { console.error("Fehler beim Parsen der requests.json: ", e); return []; }
     },
-    writeRequests: (requests) => {
-        fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
-    },
-    saveRequest: (requestData) => {
-        const requests = db.readRequests();
-        requests.unshift(requestData);
-        db.writeRequests(requests);
-    },
-    updateRequestStatus: (requestId, status, adminUsername) => {
-        let requests = db.readRequests();
-        const requestIndex = requests.findIndex(r => r.requestId === requestId);
-        if (requestIndex !== -1) {
-            requests[requestIndex].status = status;
-            requests[requestIndex].handledBy = adminUsername;
-            requests[requestIndex].handledAt = new Date().toISOString();
-            db.writeRequests(requests);
-            return requests[requestIndex];
-        }
+    writeRequests: (requests) => fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2)),
+    saveRequest: (requestData) => { const r = db.readRequests(); r.unshift(requestData); db.writeRequests(r); },
+    updateRequestStatus: (id, status, admin) => {
+        let r = db.readRequests();
+        const i = r.findIndex(req => req.requestId === id);
+        if (i !== -1) { r[i].status = status; r[i].handledBy = admin; r[i].handledAt = new Date().toISOString(); db.writeRequests(r); return r[i]; }
         return null;
+    },
+    readSubscriptions: () => {
+        if (!fs.existsSync(subsFile) || fs.readFileSync(subsFile).length === 0) return [];
+        try { return JSON.parse(fs.readFileSync(subsFile)); }
+        catch (e) { console.error("Fehler beim Parsen der subs.json: ", e); return []; }
+    },
+    writeSubscriptions: (subs) => fs.writeFileSync(subsFile, JSON.stringify(subs, null, 2)),
+    saveSubscription: (subData) => {
+        const subs = db.readSubscriptions();
+        const existingSubIndex = subs.findIndex(s => s.jellyfinUsername.toLowerCase() === subData.jellyfinUsername.toLowerCase());
+        if (existingSubIndex > -1) {
+            subs[existingSubIndex] = subData;
+        } else {
+            subs.unshift(subData);
+        }
+        db.writeSubscriptions(subs);
     }
 };
 
-// --- Discord Client & Express App Initialisierung ---
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent] });
+// --- Discord Client & Befehls-Lader ---
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+client.commands = new Collection();
+const commandFiles = fs.readdirSync(path.join(__dirname, 'dc/commands')).filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+    const command = require(`./dc/commands/${file}`);
+    client.commands.set(command.name, command);
+}
+
+// --- Express App ---
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -150,7 +157,6 @@ app.post('/api/request', async (req, res) => {
                 item.ProductionYear === yearToCheck
             );
             if (exists) {
-                console.log(`Abgebrochen: "${titleToCheck}" (${yearToCheck}) existiert bereits auf dem Jellyfin-Server.`);
                 return res.status(409).json({ message: 'Dieser Titel ist bereits auf dem Server verfügbar!' });
             }
         }
@@ -164,7 +170,6 @@ app.post('/api/request', async (req, res) => {
                 case 'rejected': userMessage = 'Dieser Titel wurde bereits angefragt und in der Vergangenheit abgelehnt.'; break;
                 default: userMessage = 'Dieser Titel wurde bereits angefragt.';
             }
-            console.log(`Abgebrochen: Duplikatsanfrage für TMDB ID ${mediaId} mit Status "${existingRequest.status}".`);
             return res.status(409).json({ message: userMessage });
         }
         mediaDetails.media_type = mediaType;
@@ -185,56 +190,31 @@ app.post('/api/request', async (req, res) => {
 // --- API Route zum Abrufen persönlicher Anfragen ---
 app.get('/api/my-requests', (req, res) => {
     const { userId } = req.query;
-    if (!userId) {
-        return res.status(400).json({ message: 'Benutzer-ID ist erforderlich.' });
-    }
+    if (!userId) return res.status(400).json({ message: 'Benutzer-ID ist erforderlich.' });
     const allRequests = db.readRequests();
     const userRequests = allRequests.filter(r => r.requesterJellyfinId === userId);
     res.status(200).json(userRequests);
 });
 
 
-// --- API ROUTE ZUM ÄNDERN DES PASSWORTS (MIT DER FINALEN KORREKTUR) ---
+// --- API ROUTE ZUM ÄNDERN DES PASSWORTS ---
 app.post('/api/user/change-password', async (req, res) => {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Authentifizierungstoken fehlt oder ist ungültig.' });
-    }
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({ message: 'Authentifizierungstoken fehlt oder ist ungültig.' });
     const accessToken = authHeader.split(' ')[1];
-
     const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword) {
-        return res.status(400).json({ message: 'Alle Felder sind erforderlich.' });
-    }
-
+    if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Alle Felder sind erforderlich.' });
     try {
-        const meResponse = await fetch(`${JELLYFIN_URL}/Users/Me`, {
-            headers: { 'Authorization': `MediaBrowser Token="${accessToken}"` }
-        });
+        const meResponse = await fetch(`${JELLYFIN_URL}/Users/Me`, { headers: { 'Authorization': `MediaBrowser Token="${accessToken}"` } });
         if (!meResponse.ok) throw new Error('Benutzersitzung ist ungültig oder abgelaufen.');
         const user = await meResponse.json();
         const userId = user.Id;
-        
-        // ======================== FINALE KORREKTUR HIER ========================
-        // KORREKTUR 1: Die URL wurde gemäß der Doku angepasst (Query-Parameter)
         const changePasswordUrl = `${JELLYFIN_URL}/Users/Password?userId=${userId}`;
-        // =======================================================================
-
         const changePasswordResponse = await fetch(changePasswordUrl, {
             method: 'POST',
-            headers: {
-                'Authorization': `MediaBrowser Token="${accessToken}"`,
-                'Content-Type': 'application/json'
-            },
-            // =======================================================================
-            // KORREKTUR 2: Der Body wurde gemäß der Doku angepasst (CurrentPw, NewPw)
-            body: JSON.stringify({
-                CurrentPw: currentPassword,
-                NewPw: newPassword
-            })
-            // =======================================================================
+            headers: { 'Authorization': `MediaBrowser Token="${accessToken}"`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ CurrentPw: currentPassword, NewPw: newPassword })
         });
-
         if (changePasswordResponse.status === 204) {
             return res.status(200).json({ message: 'Passwort erfolgreich geändert!' });
         } else if (changePasswordResponse.status === 401) {
@@ -244,7 +224,6 @@ app.post('/api/user/change-password', async (req, res) => {
             console.error("Jellyfin-Antwort bei Passwortänderung (Status " + changePasswordResponse.status + "):", errorText);
             throw new Error(`Jellyfin-Server hat mit einem Fehler geantwortet.`);
         }
-
     } catch (error) {
         console.error('Fehler bei der Passwortänderung:', error);
         res.status(500).json({ message: error.message || 'Ein interner Serverfehler ist aufgetreten.' });
@@ -252,33 +231,77 @@ app.post('/api/user/change-password', async (req, res) => {
 });
 
 
-// --- DISCORD INTERACTION LISTENER ---
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isButton()) return;
-    const [command, action, requestId] = interaction.customId.split(':');
-    if (command !== 'request') return;
-    
-    await interaction.deferUpdate();
-
+// --- API ROUTE ZUM ABRUFEN DES ABO-STATUS ---
+app.get('/api/user/subscription', (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+        return res.status(400).json({ message: 'Benutzer-ID ist erforderlich.' });
+    }
     try {
-        const originalMessage = interaction.message;
-        const originalEmbed = originalMessage.embeds[0];
-        const newStatus = action === 'approve' ? 'accepted' : 'rejected';
-        const updatedRequest = db.updateRequestStatus(requestId, newStatus, interaction.user.username);
-
-        if (updatedRequest) {
-            const newEmbed = EmbedBuilder.from(originalEmbed)
-                .setColor(newStatus === 'accepted' ? '#28a745' : '#dc3545')
-                .addFields({ name: 'Status', value: `${newStatus === 'accepted' ? '✅ Hochgeladen' : '❌ Abgelehnt'} durch ${interaction.user.username}`, inline: false });
-            
-            await interaction.editReply({ embeds: [newEmbed], components: [] });
-            console.log(`Request ${requestId} wurde von ${interaction.user.username} auf "${newStatus}" gesetzt.`);
+        const subs = db.readSubscriptions();
+        const userSub = subs.find(s => s.jellyfinUserId === userId && (s.status === 'active' || new Date(s.endDate) > new Date()));
+        if (userSub && userSub.status !== 'revoked' && userSub.status !== 'deleted') {
+            res.status(200).json(userSub);
         } else {
-            await interaction.editReply({ content: 'Fehler: Dieser Request wurde nicht in der Datenbank gefunden.', embeds: [], components: [] });
+            res.status(200).json({ status: 'none', message: 'Kein aktives Abo gefunden.' });
         }
     } catch (error) {
-        console.error(`Fehler beim Bearbeiten der Interaktion für Request ${requestId}:`, error);
-        await interaction.followUp({ content: 'Ein Fehler ist aufgetreten. Bitte prüfe die Konsole.', ephemeral: true });
+        console.error('Fehler beim Abrufen des Abonnements:', error);
+        res.status(500).json({ message: 'Interner Serverfehler.' });
+    }
+});
+
+
+// --- DISCORD INTERACTION ROUTER ---
+client.on('interactionCreate', async interaction => {
+    if (interaction.isCommand()) {
+        const command = client.commands.get(interaction.commandName);
+        if (!command) return;
+        try {
+            if (interaction.commandName === 'sub' && interaction.options.getSubcommand() === 'info') {
+                await command.handleInfo(interaction, db, JELLYFIN_URL, JELLYFIN_API_KEY);
+            } else {
+                await command.execute(interaction);
+            }
+        } catch (error) {
+            console.error(error);
+            if (interaction.replied || interaction.deferred) await interaction.followUp({ content: 'Beim Ausführen ist ein Fehler aufgetreten!', ephemeral: true });
+            else await interaction.reply({ content: 'Beim Ausführen ist ein Fehler aufgetreten!', ephemeral: true });
+        }
+        return;
+    }
+    if (interaction.isModalSubmit()) {
+        const [commandName] = interaction.customId.split(':');
+        const modalCommand = client.commands.get(commandName);
+        if (modalCommand && typeof modalCommand.handleModalSubmit === 'function') {
+            await modalCommand.handleModalSubmit(interaction, JELLYFIN_URL, JELLYFIN_API_KEY, db);
+        }
+        return;
+    }
+    if (interaction.isButton()) {
+        const [commandName, action, data] = interaction.customId.split(':');
+        if (commandName === 'request') {
+            await interaction.deferUpdate();
+            const requestId = data;
+            const originalMessage = interaction.message;
+            const originalEmbed = originalMessage.embeds[0];
+            const newStatus = action === 'approve' ? 'accepted' : 'rejected';
+            const updatedRequest = db.updateRequestStatus(requestId, newStatus, interaction.user.username);
+            if (updatedRequest) {
+                const newEmbed = EmbedBuilder.from(originalEmbed)
+                    .setColor(newStatus === 'accepted' ? '#28a745' : '#dc3545')
+                    .addFields({ name: 'Status', value: `${newStatus === 'accepted' ? '✅ Hochgeladen' : '❌ Abgelehnt'} durch ${interaction.user.username}`, inline: false });
+                await interaction.editReply({ embeds: [newEmbed], components: [] });
+            } else {
+                await interaction.editReply({ content: 'Fehler: Dieser Request wurde nicht in der Datenbank gefunden.', embeds: [], components: [] });
+            }
+        } else if (commandName === 'sub') {
+            const buttonCommand = client.commands.get(commandName);
+            if (buttonCommand && typeof buttonCommand.handleButtonInteraction === 'function') {
+                await buttonCommand.handleButtonInteraction(interaction, db, JELLYFIN_URL, JELLYFIN_API_KEY);
+            }
+        }
+        return;
     }
 });
 

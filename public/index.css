@@ -51,6 +51,11 @@ input:focus {
     border-color: var(--accent);
 }
 
+/* KORREKTUR: Spezifische Button-Regeln, um sicherzustellen, dass das Styling greift. */
+#login-button {
+    width: 100%;
+}
+
 .error-message {
     margin-top: 1.5rem;
     color: var(--accent);

@@ -1,5 +1,103 @@
 [
   {
+    "requestId": "1754901000904-69da76b0",
+    "requesterJellyfinId": "69da76b0b25a4c63b871799d3218c4f5",
+    "requesterJellyfinUsername": "test",
+    "requestDate": "2025-08-11T08:30:00.904Z",
+    "status": "pending",
+    "mediaType": "tv",
+    "mediaTmdbId": 256911,
+    "mediaTitle": "The Last American Gay Bar",
+    "mediaPosterPath": "/dMeBrwxYryFlIfOC8syQ4G1fvc7.jpg"
+  },
+  {
+    "requestId": "1754900185310-69da76b0",
+    "requesterJellyfinId": "69da76b0b25a4c63b871799d3218c4f5",
+    "requesterJellyfinUsername": "test",
+    "requestDate": "2025-08-11T08:16:25.310Z",
+    "status": "pending",
+    "mediaType": "movie",
+    "mediaTmdbId": 94329,
+    "mediaTitle": "The Raid",
+    "mediaPosterPath": "/Icx11EkqhjZiiDmGLGdtPq0geT.jpg"
+  },
+  {
+    "requestId": "1754899553831-69da76b0",
+    "requesterJellyfinId": "69da76b0b25a4c63b871799d3218c4f5",
+    "requesterJellyfinUsername": "test",
+    "requestDate": "2025-08-11T08:05:53.831Z",
+    "status": "pending",
+    "mediaType": "movie",
+    "mediaTmdbId": 1100988,
+    "mediaTitle": "28 Years Later",
+    "mediaPosterPath": "/ygCqIBzLOgm1QmBDhDwKs9XE5PY.jpg"
+  },
+  {
+    "requestId": "1754899354373-69da76b0",
+    "requesterJellyfinId": "69da76b0b25a4c63b871799d3218c4f5",
+    "requesterJellyfinUsername": "test",
+    "requestDate": "2025-08-11T08:02:34.373Z",
+    "status": "rejected",
+    "mediaType": "movie",
+    "mediaTmdbId": 617126,
+    "mediaTitle": "The Fantastic 4: First Steps",
+    "mediaPosterPath": "/qerflS8AU23XopttgDFBsbe1L0D.jpg",
+    "handledBy": "notslowly",
+    "handledAt": "2025-08-11T08:04:48.624Z"
+  },
+  {
+    "requestId": "1754849955122-3bc5d58a",
+    "requesterJellyfinId": "3bc5d58a5fba45d785dbaaedcb1b4758",
+    "requesterJellyfinUsername": "Mama",
+    "requestDate": "2025-08-10T18:19:15.122Z",
+    "status": "rejected",
+    "mediaType": "movie",
+    "mediaTmdbId": 1139738,
+    "mediaTitle": "Full Speed",
+    "mediaPosterPath": null,
+    "handledBy": "notslowly",
+    "handledAt": "2025-08-10T18:20:41.937Z"
+  },
+  {
+    "requestId": "1754849952458-3bc5d58a",
+    "requesterJellyfinId": "3bc5d58a5fba45d785dbaaedcb1b4758",
+    "requesterJellyfinUsername": "Mama",
+    "requestDate": "2025-08-10T18:19:12.458Z",
+    "status": "accepted",
+    "mediaType": "movie",
+    "mediaTmdbId": 382598,
+    "mediaTitle": "Full Speed",
+    "mediaPosterPath": "/rrCuk8FSEo7y2v5FUEuweB5Pg1L.jpg",
+    "handledBy": "notslowly",
+    "handledAt": "2025-08-10T18:28:23.732Z"
+  },
+  {
+    "requestId": "1754849947564-3bc5d58a",
+    "requesterJellyfinId": "3bc5d58a5fba45d785dbaaedcb1b4758",
+    "requesterJellyfinUsername": "Mama",
+    "requestDate": "2025-08-10T18:19:07.564Z",
+    "status": "rejected",
+    "mediaType": "tv",
+    "mediaTmdbId": 243348,
+    "mediaTitle": "Full Speed",
+    "mediaPosterPath": "/fXhZCpFlFXST8qZt2dYT4XTeF1E.jpg",
+    "handledBy": "notslowly",
+    "handledAt": "2025-08-10T18:20:39.573Z"
+  },
+  {
+    "requestId": "1754849279195-68452de7",
+    "requesterJellyfinId": "68452de7308f4201b4256309b80d2d49",
+    "requesterJellyfinUsername": "Samira",
+    "requestDate": "2025-08-10T18:07:59.195Z",
+    "status": "rejected",
+    "mediaType": "tv",
+    "mediaTmdbId": 1434,
+    "mediaTitle": "Family Guy",
+    "mediaPosterPath": "/8o8kiBkWFK3gVytHdyzEWUBXVfK.jpg",
+    "handledBy": "notslowly",
+    "handledAt": "2025-08-10T18:08:15.876Z"
+  },
+  {
     "requestId": "1754826767083-6ce17c35",
     "requesterJellyfinId": "6ce17c35c98d47df93ef107f71bea5d7",
     "requesterJellyfinUsername": "test",
@@ -24,19 +122,6 @@
     "mediaPosterPath": "/5bBgvH3hTxlANUsLP1ov0lEKmJp.jpg",
     "handledBy": "notslowly",
     "handledAt": "2025-08-10T11:37:37.786Z"
-  },
-  {
-    "requestId": "1754596168343-36a43657",
-    "requesterJellyfinId": "36a436570b1749d28a70773f8046fa9a",
-    "requesterJellyfinUsername": "jellyfin",
-    "requestDate": "2025-08-07T19:49:28.343Z",
-    "status": "rejected",
-    "mediaType": "movie",
-    "mediaTmdbId": 1100988,
-    "mediaTitle": "28 Years Later",
-    "mediaPosterPath": "/ygCqIBzLOgm1QmBDhDwKs9XE5PY.jpg",
-    "handledBy": "notslowly",
-    "handledAt": "2025-08-07T19:51:03.326Z"
   },
   {
     "requestId": "1754515045622-36a43657",
