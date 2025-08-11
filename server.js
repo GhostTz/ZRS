@@ -6,6 +6,7 @@ const fs = require('fs');
 const { Client, GatewayIntentBits, EmbedBuilder, Collection } = require('discord.js');
 const { createRequestEmbed } = require('./dc/handler/requestHandler');
 const webpush = require('web-push');
+const cron = require('node-cron');
 
 // --- Konfiguration ---
 const PORT = process.env.SERVER_PORT || 3000;
@@ -84,6 +85,29 @@ const db = {
         db.writePushSubscriptions(subs);
     }
 };
+
+// --- PUSH-HELFERFUNKTION ---
+async function sendPushNotification(jellyfinUserId, title, body) {
+    const pushSubscriptions = db.readPushSubscriptions().filter(s => s.jellyfinUserId === jellyfinUserId);
+    if (pushSubscriptions.length === 0) {
+        console.log(`Keine Push-Abos für User ${jellyfinUserId} gefunden.`);
+        return;
+    }
+    console.log(`Sende ${pushSubscriptions.length} Push-Benachrichtigung(en) an User ${jellyfinUserId}...`);
+    const payload = JSON.stringify({ title, body });
+    const sendPromises = pushSubscriptions.map(sub => 
+        webpush.sendNotification(sub.subscriptionObject, payload)
+            .catch(error => {
+                if (error.statusCode === 410 || error.statusCode === 404) {
+                    console.log('Veraltetes Push-Abo entfernt:', sub.subscriptionObject.endpoint);
+                    db.deletePushSubscription(sub.subscriptionObject.endpoint);
+                } else {
+                    console.error('Fehler beim Senden der Push-Benachrichtigung:', error.body);
+                }
+            })
+    );
+    await Promise.allSettled(sendPromises);
+}
 
 // --- Discord Client & Befehls-Lader ---
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -367,43 +391,62 @@ client.on('interactionCreate', async interaction => {
                     .addFields({ name: 'Status', value: `${newStatus === 'accepted' ? '✅ Hochgeladen' : '❌ Abgelehnt'} durch ${interaction.user.username}`, inline: false });
                 await interaction.editReply({ embeds: [newEmbed], components: [] });
 
-                // BENACHRICHTIGUNG SENDEN
-                const requesterId = updatedRequest.requesterJellyfinId;
-                const pushSubscriptions = db.readPushSubscriptions().filter(s => s.jellyfinUserId === requesterId);
-                
-                if (pushSubscriptions.length > 0) {
-                    console.log(`Sende ${pushSubscriptions.length} Push-Benachrichtigung(en) für Request ${requestId}...`);
-                    const payload = JSON.stringify({
-                        title: 'ZRS Anfrage-Update',
-                        body: newStatus === 'accepted' ? `✅ "${updatedRequest.mediaTitle}" ist jetzt verfügbar!` : `❌ Deine Anfrage für "${updatedRequest.mediaTitle}" wurde abgelehnt.`
-                    });
+                const title = 'ZRS Anfrage-Update';
+                const body = newStatus === 'accepted' ? `✅ "${updatedRequest.mediaTitle}" ist jetzt verfügbar!` : `❌ Deine Anfrage für "${updatedRequest.mediaTitle}" wurde abgelehnt.`;
+                await sendPushNotification(updatedRequest.requesterJellyfinId, title, body);
 
-                    const sendPromises = pushSubscriptions.map(sub => 
-                        webpush.sendNotification(sub.subscriptionObject, payload)
-                            .catch(error => {
-                                if (error.statusCode === 410 || error.statusCode === 404) {
-                                    console.log('Veraltetes Push-Abo entfernt:', sub.subscriptionObject.endpoint);
-                                    db.deletePushSubscription(sub.subscriptionObject.endpoint);
-                                } else {
-                                    console.error('Fehler beim Senden der Push-Benachrichtigung:', error.body);
-                                }
-                            })
-                    );
-                    
-                    await Promise.allSettled(sendPromises);
-                    console.log('Versand der Push-Benachrichtigungen abgeschlossen.');
-                }
             } else {
                 await interaction.editReply({ content: 'Fehler: Dieser Request wurde nicht in der Datenbank gefunden.', embeds: [], components: [] });
             }
         } else if (commandName === 'sub') {
             const buttonCommand = client.commands.get(commandName);
             if (buttonCommand && typeof buttonCommand.handleButtonInteraction === 'function') {
-                await buttonCommand.handleButtonInteraction(interaction, db, JELLYFIN_URL, JELLYFIN_API_KEY);
+                await buttonCommand.handleButtonInteraction(interaction, db, JELLYFIN_URL, JELLYFIN_API_KEY, sendPushNotification);
             }
         }
         return;
     }
+});
+
+
+// --- AUTOMATISIERTER ABO-WÄCHTER (CRON JOB) ---
+cron.schedule('0 3 * * *', async () => {
+    console.log('Starte täglichen Abo-Check...');
+    const now = new Date();
+    const allSubs = db.readSubscriptions();
+    let changesMade = false;
+    
+    for (const sub of allSubs) {
+        if (sub.status !== 'active') continue;
+
+        const endDate = new Date(sub.endDate);
+        const daysLeft = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+
+        if (daysLeft === 3) {
+            await sendPushNotification(sub.jellyfinUserId, 'ZRS Abo-Erinnerung', `⏳ Dein Abonnement läuft in 3 Tagen ab!`);
+        } else if (daysLeft === 1) {
+            await sendPushNotification(sub.jellyfinUserId, 'ZRS Abo-Erinnerung', `⏰ Dein Abonnement läuft heute ab! Dies ist dein letzter Tag.`);
+        } else if (daysLeft <= 0) {
+            console.log(`Abo für ${sub.jellyfinUsername} ist abgelaufen. Lösche Benutzer...`);
+            const { success, error } = await deleteJellyfinUser(sub.jellyfinUserId, JELLYFIN_URL, JELLYFIN_API_KEY);
+            if (success) {
+                sub.status = 'expired';
+                changesMade = true;
+                await sendPushNotification(sub.jellyfinUserId, 'ZRS Abonnement', `Dein Abo ist abgelaufen und dein Zugang wurde beendet.`);
+                console.log(`Benutzer ${sub.jellyfinUsername} erfolgreich gelöscht.`);
+            } else {
+                console.error(`Fehler beim automatischen Löschen von ${sub.jellyfinUsername}: ${error}`);
+            }
+        }
+    }
+    
+    if (changesMade) {
+        db.writeSubscriptions(allSubs);
+    }
+    console.log(`Täglicher Abo-Check abgeschlossen.`);
+}, {
+    scheduled: true,
+    timezone: "Europe/Berlin"
 });
 
 

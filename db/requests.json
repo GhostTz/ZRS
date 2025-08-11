@@ -1,0 +1,28 @@
+[
+  {
+    "requestId": "1754921634056-36a43657",
+    "requesterJellyfinId": "36a436570b1749d28a70773f8046fa9a",
+    "requesterJellyfinUsername": "jellyfin",
+    "requestDate": "2025-08-11T14:13:54.056Z",
+    "status": "rejected",
+    "mediaType": "movie",
+    "mediaTmdbId": 1106289,
+    "mediaTitle": "The Pickup",
+    "mediaPosterPath": "/ypLrahSYOOelaWjJ2wOBZfcASDd.jpg",
+    "handledBy": "notslowly",
+    "handledAt": "2025-08-11T14:13:57.565Z"
+  },
+  {
+    "requestId": "1754921615737-36a43657",
+    "requesterJellyfinId": "36a436570b1749d28a70773f8046fa9a",
+    "requesterJellyfinUsername": "jellyfin",
+    "requestDate": "2025-08-11T14:13:35.737Z",
+    "status": "accepted",
+    "mediaType": "tv",
+    "mediaTmdbId": 1434,
+    "mediaTitle": "Family Guy",
+    "mediaPosterPath": "/8o8kiBkWFK3gVytHdyzEWUBXVfK.jpg",
+    "handledBy": "notslowly",
+    "handledAt": "2025-08-11T14:13:42.765Z"
+  }
+]

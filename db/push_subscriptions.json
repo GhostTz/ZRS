@@ -1,0 +1,13 @@
+[
+  {
+    "jellyfinUserId": "36a436570b1749d28a70773f8046fa9a",
+    "subscriptionObject": {
+      "endpoint": "https://fcm.googleapis.com/fcm/send/fxOPUO5wmtQ:APA91bGaYDDg2rdxROo7EFNRhBU0O3EuqcytptFwfpPW6mVRmWmANEWt-BZiZfjdOYBWTr8EZjbpyJnKixQuXXVhLW67V2V3CRNsC0tUYw8RotDITpMqpRH1gZfGjfBWOJxlnDJbJ0E3",
+      "expirationTime": null,
+      "keys": {
+        "p256dh": "BBdn7CRxVed8offL91oDf8hmR5rvXlV5mcqrljST0gdRsLOiJHHF9ST8ss0hCjQin4rdKQ8MKcBtAlxAm4v89DU",
+        "auth": "p998GCmrkWxb7X5nCNVAKw"
+      }
+    }
+  }
+]

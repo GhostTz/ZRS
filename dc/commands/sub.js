@@ -157,7 +157,8 @@ module.exports = {
         }
     },
 
-    async handleButtonInteraction(interaction, db, JELLYFIN_URL, JELLYFIN_API_KEY) {
+    // --- Button-Handler (mit Benachrichtigungen) ---
+    async handleButtonInteraction(interaction, db, JELLYFIN_URL, JELLYFIN_API_KEY, sendPushNotification) {
         const [_, action, userId] = interaction.customId.split(':');
 
         if (action === 'cancel') {
@@ -172,6 +173,11 @@ module.exports = {
             
             db.saveSubscription(subData);
             interaction.client.tempSubData.delete(userId);
+            
+            // BENACHRICHTIGUNG SENDEN
+            const endDate = new Date(subData.endDate).toLocaleDateString('de-DE');
+            await sendPushNotification(userId, 'ZRS Abonnement', `✅ Dein Abo wurde gestartet und ist bis zum ${endDate} gültig.`);
+
             return interaction.update({ content: `✅ Abonnement für **${subData.jellyfinUsername}** erfolgreich gespeichert!`, embeds: [], components: [] });
         }
 
@@ -184,13 +190,18 @@ module.exports = {
             const { success, error } = await deleteJellyfinUser(userId, JELLYFIN_URL, JELLYFIN_API_KEY);
             if (error) return interaction.update({ content: `Fehler beim Löschen des Jellyfin-Users: ${error}`, embeds: [], components: [] });
 
+            const username = subs[subDataIndex].jellyfinUsername;
             subs[subDataIndex].status = 'deleted';
             subs[subDataIndex].endDate = new Date().toISOString();
             subs[subDataIndex].removalReason = removalData?.reason || 'Kein Grund angegeben';
             db.writeSubscriptions(subs);
             
             interaction.client.tempRemovalData?.delete(userId);
-            return interaction.update({ content: `✅ Der Jellyfin-Account für **${subs[subDataIndex].jellyfinUsername}** wurde endgültig gelöscht.`, embeds: [], components: [] });
+
+            // BENACHRICHTIGUNG SENDEN
+            await sendPushNotification(userId, 'ZRS Abonnement', `Dein Abo wurde entfernt. Grund: ${removalData?.reason || 'Kein Grund angegeben'}`);
+
+            return interaction.update({ content: `✅ Der Jellyfin-Account für **${username}** wurde endgültig gelöscht.`, embeds: [], components: [] });
         }
     }
 };
