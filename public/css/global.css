@@ -59,7 +59,7 @@ h1, h2, h3 {
     padding: 0;
     margin: 0;
     width: 100%;
-    padding-top: 1.5rem; /* Abstand nach dem User-Profil */
+    padding-top: 1.5rem;
 }
 
 .nav-menu .nav-links a {
@@ -86,16 +86,15 @@ h1, h2, h3 {
     white-space: nowrap;
 }
 
-/* ------ User-Profil im Menü (Desktop) - JETZT OBEN ------ */
+/* ------ User-Profil im Menü (Desktop) - OBEN ------ */
 .user-profile {
-    /* margin-top: auto; ENTFERNT */
     width: 100%;
-    padding: 2rem 0; /* Mehr vertikales Padding */
+    padding: 2rem 0;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-bottom: 1px solid var(--primary); /* border-top zu border-bottom geändert */
+    border-bottom: 1px solid var(--primary);
 }
 
 .user-profile img {
@@ -176,6 +175,40 @@ h1, h2, h3 {
     to { opacity: 1; }
 }
 
+/* Allgemeine Button-Styles */
+.button-primary, .button-danger {
+    padding: 12px 24px;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-family);
+    transition: transform 0.2s ease-out, background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.button-primary:hover, .button-danger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+.button-primary {
+    background-color: var(--accent);
+}
+.button-primary:hover {
+    background-color: #ff5e5e;
+}
+
+.button-danger {
+    background-color: var(--primary);
+}
+.button-danger:hover {
+    background-color: var(--accent);
+}
+
+
 /* ================== RESPONSIVE DESIGN FÜR MOBILE =================== */
 @media (max-width: 768px) {
     .main-content {
@@ -200,7 +233,7 @@ h1, h2, h3 {
     }
     
     .nav-menu .nav-links {
-        padding-top: 1.5rem; /* padding-top war hier schon korrekt */
+        padding-top: 1.5rem;
     }
     
     .nav-menu .nav-links a {
@@ -215,7 +248,7 @@ h1, h2, h3 {
 
     .user-profile {
         justify-content: flex-start;
-        padding: 2rem 2.2rem; /* Angepasst für einheitlichen Einzug */
+        padding: 6rem 2.2rem 1.5rem 2.2rem; 
     }
 
     .mobile-menu-toggle {

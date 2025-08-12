@@ -134,20 +134,8 @@ h1 {
 .message.success { color: var(--success); }
 .message.error { color: var(--accent); }
 
-.button-danger {
-    padding: 12px 24px;
-    border: none;
-    background-color: var(--primary);
-    color: white;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.button-danger:hover {
-    background-color: var(--accent);
+#change-password-button {
+    width: 100%;
 }
 
 .loader {
@@ -161,3 +149,9 @@ h1 {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+    .card {
+        padding: 1.5rem;
+    }
+}

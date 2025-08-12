@@ -51,7 +51,7 @@ input:focus {
     border-color: var(--accent);
 }
 
-/* KORREKTUR: Spezifische Button-Regeln, um sicherzustellen, dass das Styling greift. */
+/* KORREKTUR: Stellt sicher, dass der Button die volle Breite hat */
 #login-button {
     width: 100%;
 }
