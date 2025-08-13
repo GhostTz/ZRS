@@ -1,15 +1,26 @@
-// Auth Guard
+// Auth Guard - Führt die Sitzungsprüfung aus, bevor irgendetwas anderes geladen wird.
 (async function checkAuth() {
     const accessToken = localStorage.getItem('zrs_accessToken');
-    if (!accessToken) { window.location.href = '/zrs/'; return; }
+    if (!accessToken) {
+        window.location.href = '/zrs/';
+        return;
+    }
+
     try {
         const response = await fetch('/zrs/api/auth/validate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accessToken })
         });
-        if (!response.ok) throw new Error('Sitzung ungültig.');
+
+        if (!response.ok) {
+            throw new Error('Sitzung ungültig.');
+        }
+
+        console.log('Sitzung ist gültig.');
+        // Nur wenn die Sitzung gültig ist, den Rest der Seite initialisieren.
         initializePage();
+
     } catch (error) {
         console.error('Authentifizierungsfehler:', error.message);
         localStorage.removeItem('zrs_accessToken');
@@ -66,6 +77,7 @@ function initializePage() {
     });
 
     const subscriptionDetails = document.getElementById('subscription-details');
+
     const loadSubscriptionInfo = async () => {
         const user = JSON.parse(localStorage.getItem('zrs_user'));
         if (!user) {
@@ -98,9 +110,11 @@ function initializePage() {
             subscriptionDetails.innerHTML = `<p>Fehler beim Laden der Abo-Daten.</p>`;
         }
     };
+    
     loadSubscriptionInfo();
 
     const passwordForm = document.getElementById('password-change-form');
+    const changePasswordButton = document.getElementById('change-password-button');
     passwordForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const currentPassword = document.getElementById('current-password').value;
@@ -117,7 +131,6 @@ function initializePage() {
             passwordMessage.textContent = 'Die neuen Passwörter stimmen nicht überein.';
             passwordMessage.classList.add('error'); return;
         }
-        const changePasswordButton = document.getElementById('change-password-button');
         changePasswordButton.disabled = true;
         changePasswordButton.textContent = 'Ändere...';
         try {
@@ -141,7 +154,7 @@ function initializePage() {
         }
     });
 
-    // --- LOGIK FÜR PUSH-BENACHRICHTIGUNGEN (MIT DER KORREKTUR) ---
+    // --- LOGIK FÜR PUSH-BENACHRICHTIGUNGEN (AKTUALISIERT) ---
     const pushButton = document.getElementById('toggle-push-button');
     const feedbackText = document.getElementById('notification-feedback');
     let isSubscribed = false;
@@ -152,22 +165,18 @@ function initializePage() {
         return response.json();
     }
 
-    async function registerServiceWorker() {
+    async function initializePush() {
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-            console.warn('Push-Benachrichtigungen werden in diesem Browser nicht unterstützt.');
             pushButton.textContent = 'Push nicht unterstützt';
             pushButton.disabled = true;
             return;
         }
         try {
-            // ======================== KORREKTUR HIER ========================
-            // Wir definieren den Geltungsbereich explizit auf den Root-Pfad unserer App.
-            swRegistration = await navigator.serviceWorker.register('/zrs/push-client.js', { scope: '/zrs/' });
-            // ================================================================
-            console.log('Service Worker erfolgreich registriert mit Scope:', swRegistration.scope);
+            swRegistration = await navigator.serviceWorker.ready;
+            console.log('Service Worker ist bereit:', swRegistration);
             await updateUI();
         } catch (error) {
-            console.error('Service Worker Registrierung fehlgeschlagen:', error);
+            console.error('Fehler beim Abrufen des Service Workers:', error);
             pushButton.textContent = 'Push nicht unterstützt';
             pushButton.disabled = true;
         }
@@ -255,5 +264,5 @@ function initializePage() {
         });
     }
 
-    registerServiceWorker();
+    initializePush();
 }

@@ -4,49 +4,12 @@
     "requesterJellyfinId": "fb225848b63b49e0bfb1e27090560ea2",
     "requesterJellyfinUsername": "Anastasia",
     "requestDate": "2025-08-11T16:39:25.734Z",
-    "status": "pending",
+    "status": "accepted",
     "mediaType": "movie",
     "mediaTmdbId": 1071585,
     "mediaTitle": "M3GAN 2.0",
-    "mediaPosterPath": "/8Ttq79mgiibQA4vRu4njKbJN6XA.jpg"
-  },
-  {
-    "requestId": "1754929127227-36a43657",
-    "requesterJellyfinId": "36a436570b1749d28a70773f8046fa9a",
-    "requesterJellyfinUsername": "jellyfin",
-    "requestDate": "2025-08-11T16:18:47.227Z",
-    "status": "accepted",
-    "mediaType": "movie",
-    "mediaTmdbId": 980477,
-    "mediaTitle": "Ne Zha 2",
-    "mediaPosterPath": "/powWUBToYfqcyvpH8jBNnLaPhjP.jpg",
+    "mediaPosterPath": "/8Ttq79mgiibQA4vRu4njKbJN6XA.jpg",
     "handledBy": "notslowly",
-    "handledAt": "2025-08-11T16:18:55.500Z"
-  },
-  {
-    "requestId": "1754921634056-36a43657",
-    "requesterJellyfinId": "36a436570b1749d28a70773f8046fa9a",
-    "requesterJellyfinUsername": "jellyfin",
-    "requestDate": "2025-08-11T14:13:54.056Z",
-    "status": "rejected",
-    "mediaType": "movie",
-    "mediaTmdbId": 1106289,
-    "mediaTitle": "The Pickup",
-    "mediaPosterPath": "/ypLrahSYOOelaWjJ2wOBZfcASDd.jpg",
-    "handledBy": "notslowly",
-    "handledAt": "2025-08-11T14:13:57.565Z"
-  },
-  {
-    "requestId": "1754921615737-36a43657",
-    "requesterJellyfinId": "36a436570b1749d28a70773f8046fa9a",
-    "requesterJellyfinUsername": "jellyfin",
-    "requestDate": "2025-08-11T14:13:35.737Z",
-    "status": "accepted",
-    "mediaType": "tv",
-    "mediaTmdbId": 1434,
-    "mediaTitle": "Family Guy",
-    "mediaPosterPath": "/8o8kiBkWFK3gVytHdyzEWUBXVfK.jpg",
-    "handledBy": "notslowly",
-    "handledAt": "2025-08-11T14:13:42.765Z"
+    "handledAt": "2025-08-12T07:28:05.564Z"
   }
 ]

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#161d2f">
+    <link rel="manifest" href="/zrs/manifest.json">
     <title>ZRS - Login</title>
     <link rel="stylesheet" href="/zrs/css/global.css">
     <link rel="stylesheet" href="/zrs/index.css">
@@ -19,11 +21,11 @@
             <div class="input-group">
                 <input type="password" id="password" placeholder="Jellyfin Passwort" required>
             </div>
-            <!-- Die Klasse 'button-primary' ist für das globale Styling -->
             <button type="submit" id="login-button" class="button-primary">Anmelden</button>
             <p id="error-message" class="error-message"></p>
         </form>
     </div>
+    <script src="/zrs/main.js"></script>
     <script src="/zrs/index.js"></script>
 </body>
 </html>

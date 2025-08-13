@@ -1,0 +1,22 @@
+{
+  "name": "ZeroRequestSystem",
+  "short_name": "ZRS",
+  "description": "Dein Portal für Medienanfragen bei Jellyfin.",
+  "start_url": "/zrs/",
+  "scope": "/zrs/",
+  "display": "standalone",
+  "background_color": "#10141f",
+  "theme_color": "#161d2f",
+  "icons": [
+    {
+      "src": "/zrs/assets/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/zrs/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

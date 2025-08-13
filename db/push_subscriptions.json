@@ -1,12 +1,11 @@
 [
   {
-    "jellyfinUserId": "36a436570b1749d28a70773f8046fa9a",
+    "jellyfinUserId": "68452de7308f4201b4256309b80d2d49",
     "subscriptionObject": {
-      "endpoint": "https://fcm.googleapis.com/fcm/send/fxOPUO5wmtQ:APA91bGaYDDg2rdxROo7EFNRhBU0O3EuqcytptFwfpPW6mVRmWmANEWt-BZiZfjdOYBWTr8EZjbpyJnKixQuXXVhLW67V2V3CRNsC0tUYw8RotDITpMqpRH1gZfGjfBWOJxlnDJbJ0E3",
-      "expirationTime": null,
+      "endpoint": "https://web.push.apple.com/QC0Vs8ln24T_-vzWvlb_6XaXNs9jm7kPdS7fkxwzHiMWql-kCUYuj--cZdFYngakQ1szIF_Hh21tLgmH8YGSG73qtYPNJVIJrNBjKy9UF5ZrZDSQJOu-ud8NDo6TqQr2KAkdUbA4rLStkr9LOHHtjlFYzHSjmVxFZ2GPaItWIW0",
       "keys": {
-        "p256dh": "BBdn7CRxVed8offL91oDf8hmR5rvXlV5mcqrljST0gdRsLOiJHHF9ST8ss0hCjQin4rdKQ8MKcBtAlxAm4v89DU",
-        "auth": "p998GCmrkWxb7X5nCNVAKw"
+        "p256dh": "BFyyzrSLFFM8I3V1kNS4u-1quuES-E0gLSIh_SnxEij2sB8A35WjFBiU38Z7MNh9ebqJk1v5xG3HH3PhFXVqqws",
+        "auth": "mR8G2PKdAQMc72pZAXxRww"
       }
     }
   }
